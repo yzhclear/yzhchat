@@ -1,24 +1,21 @@
 import React from 'react'
-// import io from 'socket.io-client'
 import { List, InputItem, NavBar, Icon, Grid } from 'antd-mobile'
 import { connect } from 'react-redux'
-import { getMsgList, sendMsg, receiveMsg } from '../../redux/chat.redux'
+import { getMsgList, sendMsg, receiveMsg, readMsg } from '../../redux/chat.redux'
 import { getChatId } from '../../util'
-
-// const socket = io('ws://localhost:9093')
-// socket.on('receivemsg', function(data) {
-//     console.log(data)
-// })
 
 @connect(
     state => state,
-    { getMsgList, sendMsg, receiveMsg }
+    { getMsgList, sendMsg, receiveMsg, readMsg }
 )
 
 class Chat extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {text: '', msg: []}
+        this.state = {
+            text: '',
+            msg: []
+        }
     }
 
     componentDidMount() {
@@ -26,13 +23,14 @@ class Chat extends React.Component {
             this.props.getMsgList()
             this.props.receiveMsg()
         }
-        // socket.on('receivemsg', (data) => {
-        //     this.setState({
-        //         msg: [...this.state.msg, data.text]
-        //     })
-        // })
     }
 
+    componentWillUnmount() {
+        const to = this.props.match.params.user
+        this.props.readMsg(to)
+    }
+
+    // 修复初次弹出表情框只出现一行的bug
     fixCarousel() {
         setTimeout(function(){
             window.dispatchEvent(new Event('resize'))
@@ -40,9 +38,6 @@ class Chat extends React.Component {
     }
 
     handleSubmit() {
-        // socket.emit('sendmsg', {text: this.state.text})
-        // this.setState({text: ''})
-        // console.log(this.state)
         const from = this.props.user._id
         const to = this.props.match.params.user
         const msg = this.state.text
